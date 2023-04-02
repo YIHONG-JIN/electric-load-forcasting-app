@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Electric Load Forecasting</title>
+    <!-- Load Google Charts library -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <!-- Load Bootstrap library -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        // Load the Visualization API and corechart package
+        google.charts.load('current', {'packages': ['corechart']});
+
+        // Set default values for target and time period
+        var target = '1A';
+        var timePeriod = '24hours';
+        var address = 'http://localhost:8080/';
+
+        // Function to handle button clicks and send HTTP request
+        function requestData() {
+            target = document.getElementById('target_select').value;
+            timePeriod = document.getElementById('period_select').value;
+            var request = new XMLHttpRequest();
+            request.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    drawChart(JSON.parse(this.responseText));
+                }
+            };
+            request.open("GET", address + target + "/" + timePeriod, true);
+            request.send();
+        }
+
+        // Function to draw the line chart using the Google Charts library
+        function drawChart(data) {
+            var chartData = new google.visualization.DataTable();
+            chartData.addColumn('string', 'Time');
+            chartData.addColumn('number', 'Electric Load');
+            console.log(data);
+            // add data to the chart, data is an object in the form {time: value}
+            for (var key in data) {
+                chartData.addRow([key, parseFloat(data[key])]);
+            }
+
+            var options = {
+                title: 'Prediction for ' + target + ' - Next ' + timePeriod,
+                curveType: 'function',
+                legend: {position: 'bottom'},
+                animation: {
+                    duration: 1000,
+                    easing: 'out',
+                    startup: true
+                }
+            };
+
+            var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+            chart.draw(chartData, options);
+        }
+
+        // Load the Visualization API and set callback to draw the default chart
+        google.charts.setOnLoadCallback(function () {
+            requestData();
+        });
+    </script>
+    <style>
+        #buttons {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        #chart_div {
+            width: 100%;
+            height: 500px;
+            overflow-scrolling: auto;
+        }
+    </style>
+
+</head>
+<body>
+<div class="container">
+    <h1 class="text-center">Electric Load Forecasting</h1>
+    <div class="row justify-content-center">
+        <div class="form-group">
+            <label for="target_select">Target:</label>
+            <select class="form-control" id="target_select" onchange="requestData()">
+                <option value="1A">1A</option>
+                <option value="1B">1B</option>
+                <option value="1C">1C</option>
+                <option value="1D">1D</option>
+                <option value="1E">1E</option>
+                <option value="2A">2A</option>
+                <option value="2B">2B</option>
+                <option value="2C">2C</option>
+                <option value="2D">2D</option>
+                <option value="2E">2E</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="period_select">Time Period:</label>
+            <select class="form-control" id="period_select" onchange="requestData()">
+                <option value="24hours">24 hours</option>
+                <option value="3days">3 days</option>
+                <option value="7days">7 days</option>
+            </select>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div id="buttons">
+            <button type="button" class="btn btn-primary" onclick="requestData()">Refresh Data</button>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div id="chart_div"></div>
+    </div>
+</div>
+</body>
+</html>
