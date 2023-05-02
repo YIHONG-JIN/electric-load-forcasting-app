@@ -3,8 +3,8 @@ const { app, BrowserWindow } = require('electron')
 function createWindow () {
     // create the browser window
     let win = new BrowserWindow({
-        width: 800,
-        height: 480,
+        width: 1920,
+        height: 1080,
         webPreferences: {
             nodeIntegration: true,
             webSecurity: false
@@ -14,6 +14,7 @@ function createWindow () {
     // load the previously created index.html file
     win.loadFile('index.html')
 }
+
 
 
 app.on('window-all-closed', () => {

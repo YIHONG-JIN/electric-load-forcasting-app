@@ -22,13 +22,14 @@
         function requestData() {
             target = document.getElementById('target_select').value;
             timePeriod = document.getElementById('period_select').value;
+            var date = document.getElementById('date_select').value;
             var request = new XMLHttpRequest();
             request.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
                     drawChart(JSON.parse(this.responseText));
                 }
             };
-            request.open("GET", address + target + "/" + timePeriod, true);
+            request.open("GET", address + "demo/" + target + "/" + timePeriod + "/" + date, true);
             request.send();
         }
 
@@ -36,26 +37,37 @@
         function drawChart(data) {
             var chartData = new google.visualization.DataTable();
             chartData.addColumn('string', 'Time');
-            chartData.addColumn('number', 'Electric Load');
+            chartData.addColumn('number', 'Real Electric Load');
+            chartData.addColumn('number', 'Predicted Electric Load');
             console.log(data);
-            // add data to the chart, data is an object in the form {time: value}
-            for (var key in data) {
-                chartData.addRow([key, parseFloat(data[key])]);
+
+            // reformat data to be in the form that the first column is time and the second column is value of real electric load and the third column is value of predicted electric load
+            // in the original data, real electric load is in the first object and predicted electric load is in the second object
+            var reformattedData = {};
+            for (var key in data['prediction']) {
+                reformattedData[key] = {};
+                reformattedData[key]['real'] = data['real'][key];
+                reformattedData[key]['predicted'] = data['prediction'][key];
+            }
+            console.log(reformattedData)
+
+
+            // add data to the chart, data is an object in the form {type: {time: value}}
+            for (var key in reformattedData) {
+                chartData.addRow([key, parseFloat(reformattedData[key]['real']), parseFloat(reformattedData[key]['predicted'])]);
             }
 
-            // set chart options
-            // ask
             var options = {
                 title: 'Prediction for ' + target + ' - Next ' + timePeriod,
                 curveType: 'function',
                 legend: {position: 'bottom'},
                 hAxis: {title: 'Time (hours from start of the day)'},
-                vAxis: {title: 'Electric Load (kW)'},
+                vAxis: {title: 'Electric Load (kW)', viewWindowMode: 'explicit', viewWindow: {min: 0,}},
                 animation: {
                     duration: 1000,
                     easing: 'out',
                     startup: true
-                }
+                },
             };
 
             var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
@@ -66,11 +78,6 @@
         google.charts.setOnLoadCallback(function () {
             requestData();
         });
-
-        // create a new window for demo, the html file is in the same folder, called demo.html
-        function openDemo() {
-            window.open('demo.html', '_blank', 'width=1920,height=1080');
-        }
     </script>
     <style>
         #buttons {
@@ -105,7 +112,6 @@
                 <option value="2E">2E</option>
             </select>
         </div>
-
         <div class="form-group">
             <label for="period_select">Time Period:</label>
             <select class="form-control" id="period_select" onchange="requestData()">
@@ -115,22 +121,23 @@
             </select>
         </div>
     </div>
+
     <div class="row justify-content-center">
-        <div id="refreshButton" style="margin-left: 10px;">
-            <button type="button" class="btn btn-primary" onclick="requestData()">Refresh Data</button>
-        </div>
-
-
-        <div id="DemoButton" style="margin-left: 10px;">
-            <button type="button" class="btn btn-primary" onclick="openDemo()">Demo</button>
+        <div class="form-group">
+            <label for="date_select">Date:</label>
+            <input type="date" id="date_select" class="form-control" onchange="requestData()">
         </div>
     </div>
 
 
+    <div class="row justify-content-center">
+        <div id="buttons">
+            <button type="button" class="btn btn-primary" onclick="requestData()">Refresh Data</button>
+        </div>
+    </div>
     <div class="row justify-content-center">
         <div id="chart_div"></div>
     </div>
-
 </div>
 </body>
 </html>
