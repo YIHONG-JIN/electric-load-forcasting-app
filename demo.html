@@ -70,7 +70,21 @@
                 },
             };
 
+            // Calculate MAPE
+            var sumAbsolutePercentageError = 0;
+
+            for (var key in reformattedData) {
+                sumAbsolutePercentageError += Math.abs((reformattedData[key]['real'] - reformattedData[key]['predicted']) / reformattedData[key]['real']);
+            }
+            console.log(sumAbsolutePercentageError)
+            console.log(Object.keys(reformattedData).length)
+            var mape = (sumAbsolutePercentageError / Object.keys(reformattedData).length) * 100;
+            console.log(mape)
+            document.getElementById('mape').value = mape.toFixed(2) + '%';
+
+
             var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+
             chart.draw(chartData, options);
         }
 
@@ -78,6 +92,7 @@
         google.charts.setOnLoadCallback(function () {
             requestData();
         });
+
     </script>
     <style>
         #buttons {
@@ -125,9 +140,10 @@
     <div class="row justify-content-center">
         <div class="form-group">
             <label for="date_select">Date:</label>
-            <input type="date" id="date_select" class="form-control" onchange="requestData()">
+            <input type="date" id="date_select" class="form-control" onchange="requestData()" min="2021-02-01" max="2023-05-01" >
         </div>
     </div>
+
 
 
     <div class="row justify-content-center">
@@ -135,6 +151,11 @@
             <button type="button" class="btn btn-primary" onclick="requestData()">Refresh Data</button>
         </div>
     </div>
+    <div class="form-group">
+        <label for="mape">Mean Absolute Percentage Error:</label>
+        <input type="text" class="form-control" id="mape" readonly>
+    </div>
+
     <div class="row justify-content-center">
         <div id="chart_div"></div>
     </div>
