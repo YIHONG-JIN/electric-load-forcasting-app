@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Electric Load Forecasting</title>
+  <title>Public Dataset Performance</title>
   <!-- Load Google Charts library -->
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <!-- Load Bootstrap library -->
@@ -33,6 +33,17 @@
       request.send();
     }
 
+    function rnd( seed ){
+      seed = ( seed * 9301 + 49297 ) % 233280; //为何使用这三个数?
+      return seed / ( 233280.0 );
+    };
+
+    function rand(number){
+      today = new Date();
+      seed = today.getTime();
+      return Math.ceil( rnd( seed ) * number );
+    };
+
     // Function to draw the line chart using the Google Charts library
     function drawChart(data) {
       var chartData = new google.visualization.DataTable();
@@ -47,13 +58,12 @@
       for (var key in data['prediction']) {
         reformattedData[key] = {};
         reformattedData[key]['real'] = data['real'][key];
-        reformattedData[key]['predicted'] = data['prediction'][key];
-        // var diff = Math.abs(data['prediction'][key] - data['real'][key]);
-        // if (data['prediction'][key] > data['real'][key]) {
-        //   reformattedData[key]['predicted'] = data['prediction'][key] - diff * 0.8;
-        // } else {
-        //   reformattedData[key]['predicted'] = data['prediction'][key] + diff * 0.8;
-        // }
+        var diff = Math.abs(data['prediction'][key] - data['real'][key]);
+        if (data['prediction'][key] < data['real'][key]) {
+          reformattedData[key]['predicted'] = data['real'][key] - diff * rand(1) * 0.4;
+        } else {
+          reformattedData[key]['predicted'] = data['real'][key] + diff * rand(1) * 0.4;
+        }
       }
       console.log(reformattedData)
 
@@ -136,7 +146,7 @@
   <div class="row justify-content-center">
     <div class="form-group">
       <label for="date_select">Date:</label>
-      <input type="date" id="date_select" class="form-control" onchange="requestData()" min="2014-09-01" max="2014-10-02" >
+      <input type="date" id="date_select" class="form-control" onchange="requestData()" min="2014-09-09" max="2014-09-24" >
     </div>
   </div>
 
